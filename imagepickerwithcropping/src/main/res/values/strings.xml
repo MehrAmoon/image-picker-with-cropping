@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">libraries</string>
+    <string name="pick_image_intent_chooser_title">Select source</string>
+    <string name="crop_image_menu_crop">Crop</string>
+    <string name="crop_image_menu_rotate_left">Rotate counter-clockwise</string>
+    <string name="crop_image_menu_rotate_right">Rotate clockwise</string>
+</resources>
