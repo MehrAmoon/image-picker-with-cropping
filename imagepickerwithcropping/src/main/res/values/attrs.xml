@@ -19,7 +19,7 @@
         </attr>
 
 
-        <item name="crop_image_menu_crop" type="drawable"/>
+
         <attr name="cropAutoZoomEnabled" format="boolean"/>
         <attr name="cropMaxZoom" format="integer"/>
         <attr name="cropMultiTouchEnabled" format="boolean"/>
