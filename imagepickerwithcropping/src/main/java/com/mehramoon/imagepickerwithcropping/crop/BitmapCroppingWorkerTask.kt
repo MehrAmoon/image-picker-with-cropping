@@ -113,7 +113,7 @@ class BitmapCroppingWorkerTask {
                             mAspectRatioY
                         )
                     } else {
-                        return@executeAsyncTask BitmapCroppingWorkerTask.Result(null as Bitmap?, 1)
+                        return@executeAsyncTask Result(null as Bitmap?, 1)
                     }
                     val bitmap: Bitmap? = bitmapSampled.bitmap?.let {
                         BitmapUtils.resizeBitmap(
@@ -124,7 +124,7 @@ class BitmapCroppingWorkerTask {
                         )
                     }
                     return@executeAsyncTask if (mSaveUri == null) {
-                        BitmapCroppingWorkerTask.Result(bitmap, bitmapSampled.sampleSize)
+                        Result(bitmap, bitmapSampled.sampleSize)
                     } else {
                         if (bitmap != null) {
                             BitmapUtils.writeBitmapToUri(
@@ -136,7 +136,7 @@ class BitmapCroppingWorkerTask {
                             )
                         }
                         bitmap?.recycle()
-                        BitmapCroppingWorkerTask.Result(mSaveUri, bitmapSampled.sampleSize)
+                        Result(mSaveUri, bitmapSampled.sampleSize)
                     }
                 }
                 null

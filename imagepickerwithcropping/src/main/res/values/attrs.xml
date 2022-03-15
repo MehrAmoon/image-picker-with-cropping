@@ -17,9 +17,6 @@
             <enum name="rectangle" value="0"/>
             <enum name="oval" value="1"/>
         </attr>
-
-
-
         <attr name="cropAutoZoomEnabled" format="boolean"/>
         <attr name="cropMaxZoom" format="integer"/>
         <attr name="cropMultiTouchEnabled" format="boolean"/>
@@ -47,6 +44,5 @@
         <attr name="cropMaxCropResultWidthPX" format="float"/>
         <attr name="cropMaxCropResultHeightPX" format="float"/>
     </declare-styleable>
-
 
 </resources>

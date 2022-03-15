@@ -18,11 +18,14 @@ import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.mehramoon.imagepickerwithcropping.R
-import com.mehramoon.imagepickerwithcropping.crop.CropImage
 import java.io.File
 import java.io.IOException
 
 
+/**
+ * Built-in activity for image cropping.<br></br>
+ * Use [CropImage.activity] to create a builder to start this activity.
+ */
 class CropImageActivity : AppCompatActivity(), CropImageView.OnSetImageUriCompleteListener,
     CropImageView.OnCropImageCompleteListener {
     /**

@@ -8,12 +8,11 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.text.TextUtils
 import android.util.Log
-import androidx.annotation.NonNull
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import com.mehramoon.imagepickerwithcropping.crop.CropImage
 import com.mehramoon.imagepickerwithcropping.crop.CropImageView
-
+import io.reactivex.annotations.NonNull
 import java.io.File
 
 

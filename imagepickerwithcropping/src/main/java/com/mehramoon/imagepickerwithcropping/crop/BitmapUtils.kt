@@ -21,6 +21,9 @@ import kotlin.math.roundToInt
 import kotlin.math.sin
 
 
+/**
+ * Utility class that deals with operations with an ImageView.
+ */
 object BitmapUtils {
     val EMPTY_RECT = Rect()
     val EMPTY_RECT_F = RectF()
@@ -493,7 +496,7 @@ object BitmapUtils {
                 reqHeight
             )
             stream = context.contentResolver.openInputStream(uri)
-            decoder = stream?.let { BitmapRegionDecoder.newInstance(it, false) }
+            decoder = BitmapRegionDecoder.newInstance(stream!!, false)
             do {
                 try {
                     return BitmapSampled(decoder?.decodeRegion(rect, options), options.inSampleSize)

@@ -13,11 +13,11 @@ import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
 import android.provider.MediaStore
-import androidx.annotation.NonNull
-import androidx.annotation.Nullable
 import androidx.fragment.app.Fragment
 import com.mehramoon.imagepickerwithcropping.R
 import com.mehramoon.imagepickerwithcropping.Utils
+import io.reactivex.annotations.NonNull
+import io.reactivex.annotations.Nullable
 import java.io.File
 
 
