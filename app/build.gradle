@@ -66,5 +66,6 @@ dependencies {
     implementation "com.github.bumptech.glide:glide:4.11.0"
 
     //this is the library
-    implementation 'com.github.MehrAmoon:image-picker-with-cropping:1.1'
+   // implementation 'com.github.MehrAmoon:image-picker-with-cropping:e0aa91185f'
+    implementation project(':imagepickerwithcropping')
 }
