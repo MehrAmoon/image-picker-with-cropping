@@ -31,11 +31,20 @@ class BitmapLoadingWorkerTask(cropImageView: CropImageView, val uri: Uri){
     }
 
     fun bitmapLoadingWorkerTaskRun() {
-        decodeResult = BitmapUtils.decodeSampledBitmap(
-            mContext,
-            uri, mWidth, mHeight
-        )
-        GlobalScope.launch { bitmapLoadingWorkerTaskFun() }
+
+        GlobalScope.launch {
+            //TODO("Background processing...")
+            withContext(Dispatchers.Main) {
+                decodeResult = BitmapUtils.decodeSampledBitmap(
+                    mContext,
+                    uri, mWidth, mHeight
+                )
+            }
+            //TODO("Continue background processing...")
+            bitmapLoadingWorkerTaskFun()
+        }
+
+     //   GlobalScope.launch { bitmapLoadingWorkerTaskFun() }
     }
 
     suspend fun bitmapLoadingWorkerTaskFun() {
