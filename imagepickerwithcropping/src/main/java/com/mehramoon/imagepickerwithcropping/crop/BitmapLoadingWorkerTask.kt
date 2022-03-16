@@ -31,7 +31,10 @@ class BitmapLoadingWorkerTask(cropImageView: CropImageView, val uri: Uri){
     }
 
     fun bitmapLoadingWorkerTaskRun() {
-
+        decodeResult = BitmapUtils.decodeSampledBitmap(
+            mContext,
+            uri, mWidth, mHeight
+        )
         GlobalScope.launch { bitmapLoadingWorkerTaskFun() }
     }
 
@@ -45,22 +48,16 @@ class BitmapLoadingWorkerTask(cropImageView: CropImageView, val uri: Uri){
                 "Result" // send data to "onPostExecute"
 
                 if (!isCancelled) {
-                    val decodeResult: BitmapUtils.BitmapSampled = BitmapUtils.decodeSampledBitmap(
-                        mContext,
-                        uri, mWidth, mHeight
+                    val rotateResult: BitmapUtils.RotateBitmapResult = BitmapUtils.rotateBitmapByExif(
+                        decodeResult.bitmap, mContext,
+                        uri
                     )
-                    if (!isCancelled) {
-                        val rotateResult: BitmapUtils.RotateBitmapResult = BitmapUtils.rotateBitmapByExif(
-                            decodeResult.bitmap, mContext,
-                            uri
-                        )
-                        return@executeAsyncTask Result(
-                            uri,
-                            rotateResult.bitmap,
-                            decodeResult.sampleSize,
-                            rotateResult.degrees
-                        )
-                    }
+                    return@executeAsyncTask Result(
+                        uri,
+                        rotateResult.bitmap,
+                        decodeResult.sampleSize,
+                        rotateResult.degrees
+                    )
                 }
                 null
 

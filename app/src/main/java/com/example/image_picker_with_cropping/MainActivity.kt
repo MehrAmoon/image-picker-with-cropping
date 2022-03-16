@@ -9,6 +9,7 @@ import com.mehramoon.imagepickerwithcropping.crop.CropImage
 import com.mehramoon.imagepickerwithcropping.crop.CropImageView
 import com.mehramoon.imagepickerwithcropping.ImagePicker
 import kotlinx.android.synthetic.main.main_activity.*
+import kotlinx.coroutines.runBlocking
 
 class MainActivity : AppCompatActivity() {
 
@@ -26,39 +27,43 @@ class MainActivity : AppCompatActivity() {
         setContentView(setLayout())
 
         select_source.setOnClickListener {
-
-            imagePicker.startChooser(this, object : ImagePicker.Callback() {
-
-                override fun onPickImage(imageUri: Uri?) {
-                }
-
-                override fun onCropImage(imageUri: Uri?) {
-                    super.onCropImage(imageUri)
-
-                    Glide.with(this@MainActivity)
-                        .load(imageUri)
-                        .into(image);
-                }
-
-                override fun cropConfig(builder: CropImage.ActivityBuilder) {
-                    builder.setMultiTouchEnabled(false)
-                        .setGuidelines(CropImageView.Guidelines.ON)
-                        .setAspectRatio(1, 1)
-                        .setCropShape(CropImageView.CropShape.RECTANGLE)
-                }
-
-                override fun onPermissionDenied(
-                    requestCode: Int,
-                    permissions: Array<String>?,
-                    grantResults: IntArray?
-                ) {
-
-                }
-
-            })
-
+            runBlocking {
+                pickImage()
+            }
         }
 
+    }
+
+    private fun pickImage() {
+        imagePicker.startChooser(this, object : ImagePicker.Callback() {
+
+            override fun onPickImage(imageUri: Uri?) {
+            }
+
+            override fun onCropImage(imageUri: Uri?) {
+                super.onCropImage(imageUri)
+
+                Glide.with(this@MainActivity)
+                    .load(imageUri)
+                    .into(image);
+            }
+
+            override fun cropConfig(builder: CropImage.ActivityBuilder) {
+                builder.setMultiTouchEnabled(false)
+                    .setGuidelines(CropImageView.Guidelines.ON)
+                    .setAspectRatio(1, 1)
+                    .setCropShape(CropImageView.CropShape.RECTANGLE)
+            }
+
+            override fun onPermissionDenied(
+                requestCode: Int,
+                permissions: Array<String>?,
+                grantResults: IntArray?
+            ) {
+
+            }
+
+        })
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
