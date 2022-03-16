@@ -734,13 +734,13 @@ class CropImageView @JvmOverloads constructor(context: Context, attrs: Attribute
         if (uri != null) {
             val currentTask =
                 if (mBitmapLoadingWorkerTask != null) mBitmapLoadingWorkerTask!!.get() else null
-            currentTask?.bitmapLoadingWorkerTaskJob?.cancel()
+            currentTask?.cancel(true)
 
             // either no existing task is working or we canceled it, need to load new URI
             clearImageInt()
             mCropOverlayView!!.initialCropWindowRect = null
             mBitmapLoadingWorkerTask = WeakReference(BitmapLoadingWorkerTask(this, uri))
-            mBitmapLoadingWorkerTask!!.get()!!.bitmapLoadingWorkerTaskRun()
+            mBitmapLoadingWorkerTask!!.get()!!.execute()
             setProgressBarVisibility()
         }
     }

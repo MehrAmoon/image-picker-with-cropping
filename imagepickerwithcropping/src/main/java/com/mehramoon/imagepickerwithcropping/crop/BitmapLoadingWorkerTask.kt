@@ -3,102 +3,126 @@ package com.mehramoon.imagepickerwithcropping.crop
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
-import com.mehramoon.imagepickerwithcropping.Utils.executeAsyncTask
-import kotlinx.coroutines.*
-import kotlinx.coroutines.NonCancellable.isCancelled
+import android.os.AsyncTask
 import java.lang.ref.WeakReference
 
 
 /**
  * Task to load bitmap asynchronously from the UI thread.
  */
-
-class BitmapLoadingWorkerTask(cropImageView: CropImageView, val uri: Uri){
-
-    var bitmapLoadingWorkerTaskJob: Job? = null
+class BitmapLoadingWorkerTask(
+    cropImageView: CropImageView,
+    /**
+     * The Android URI of the image to load
+     */
+    val uri: Uri
+) :
+    AsyncTask<Void?, Void?, BitmapLoadingWorkerTask.Result?>() {
+    //region: Fields and Consts
+    /**
+     * Use a WeakReference to ensure the ImageView can be garbage collected
+     */
     private val mCropImageViewReference: WeakReference<CropImageView> = WeakReference(cropImageView)
+    /**
+     * The Android URI that this task is currently loading.
+     */
+
+    /**
+     * The context of the crop image view widget used for loading of bitmap by Android URI
+     */
     private val mContext: Context
+
+    /**
+     * required width of the cropping image after density adjustment
+     */
     private val mWidth: Int
+
+    /**
+     * required height of the cropping image after density adjustment
+     */
     private val mHeight: Int
-    lateinit var decodeResult: BitmapUtils.BitmapSampled
 
-    init {
-        mContext = cropImageView.context
-        val metrics = cropImageView.resources.displayMetrics
-        val densityAdj = if (metrics.density > 1) (1 / metrics.density).toDouble() else 1.toDouble()
-        mWidth = (metrics.widthPixels * densityAdj).toInt()
-        mHeight = (metrics.heightPixels * densityAdj).toInt()
-    }
-
-    fun bitmapLoadingWorkerTaskRun() {
-
-        GlobalScope.launch {
-            //TODO("Background processing...")
-            withContext(Dispatchers.Main) {
-                decodeResult = BitmapUtils.decodeSampledBitmap(
+    /**
+     * Decode image in background.
+     *
+     * @param params ignored
+     * @return the decoded bitmap data
+     */
+    override fun doInBackground(vararg params: Void?): Result? {
+        return try {
+            if (!isCancelled) {
+                val decodeResult: BitmapUtils.BitmapSampled = BitmapUtils.decodeSampledBitmap(
                     mContext,
                     uri, mWidth, mHeight
                 )
-            }
-            //TODO("Continue background processing...")
-            bitmapLoadingWorkerTaskFun()
-        }
-
-     //   GlobalScope.launch { bitmapLoadingWorkerTaskFun() }
-    }
-
-    suspend fun bitmapLoadingWorkerTaskFun() {
-        bitmapLoadingWorkerTaskJob = coroutineScope {
-            executeAsyncTask(onPreExecute = {
-                // ... runs in Main Thread
-
-            }, doInBackground = {
-                // ... runs in Worker(Background) Thread
-                "Result" // send data to "onPostExecute"
-
                 if (!isCancelled) {
                     val rotateResult: BitmapUtils.RotateBitmapResult = BitmapUtils.rotateBitmapByExif(
                         decodeResult.bitmap, mContext,
                         uri
                     )
-                    return@executeAsyncTask Result(
+                    return Result(
                         uri,
                         rotateResult.bitmap,
                         decodeResult.sampleSize,
                         rotateResult.degrees
                     )
                 }
-                null
-
-            }, onPostExecute = {
-                // runs in Main Thread
-                // ... here "it" is the data returned from "doInBackground"
-
-                if (it != null) {
-                    var completeCalled = false
-                    if (!isCancelled) {
-                        val cropImageView = mCropImageViewReference.get()
-                        if (cropImageView != null) {
-                            completeCalled = true
-                            cropImageView.onSetImageUriAsyncComplete(it)
-                        }
-                    }
-                    if (!completeCalled && it.bitmap != null) {
-                        // fast release of unused bitmap
-                        it.bitmap.recycle()
-                    }
-                }
-
-            })
+            }
+            null
+        } catch (e: Exception) {
+            Result(uri, e)
         }
     }
 
-
+    /**
+     * Once complete, see if ImageView is still around and set bitmap.
+     *
+     * @param result the result of bitmap loading
+     */
+    override fun onPostExecute(result: Result?) {
+        if (result != null) {
+            var completeCalled = false
+            if (!isCancelled) {
+                val cropImageView = mCropImageViewReference.get()
+                if (cropImageView != null) {
+                    completeCalled = true
+                    cropImageView.onSetImageUriAsyncComplete(result)
+                }
+            }
+            if (!completeCalled && result.bitmap != null) {
+                // fast release of unused bitmap
+                result.bitmap.recycle()
+            }
+        }
+    }
+    //region: Inner class: Result
+    /**
+     * The result of BitmapLoadingWorkerTask async loading.
+     */
     class Result {
+        /**
+         * The Android URI of the image to load
+         */
         val uri: Uri
+
+        /**
+         * The loaded bitmap
+         */
         val bitmap: Bitmap?
+
+        /**
+         * The sample size used to load the given bitmap
+         */
         val loadSampleSize: Int
+
+        /**
+         * The degrees the image was rotated
+         */
         val degreesRotated: Int
+
+        /**
+         * The error that occurred during async bitmap loading.
+         */
         val error: Exception?
 
         internal constructor(uri: Uri, bitmap: Bitmap?, loadSampleSize: Int, degreesRotated: Int) {
@@ -116,5 +140,16 @@ class BitmapLoadingWorkerTask(cropImageView: CropImageView, val uri: Uri){
             degreesRotated = 0
             this.error = error
         }
+    } //endregion
+
+    //endregion
+    init {
+        mContext = cropImageView.context
+        val metrics = cropImageView.resources.displayMetrics
+        val densityAdj = if (metrics.density > 1) (1 / metrics.density).toDouble() else 1.toDouble()
+        mWidth = (metrics.widthPixels * densityAdj).toInt()
+        mHeight = (metrics.heightPixels * densityAdj).toInt()
     }
+
+
 }
