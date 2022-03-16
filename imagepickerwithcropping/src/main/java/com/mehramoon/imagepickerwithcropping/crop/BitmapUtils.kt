@@ -34,7 +34,7 @@ object BitmapUtils {
     var mStateBitmap: Pair<String, WeakReference<Bitmap>>? = null
 
 
-    fun rotateBitmapByExifWithUri(bitmap: Bitmap?, context: Context, uri: Uri): RotateBitmapResult {
+    fun rotateBitmapByExif(bitmap: Bitmap?, context: Context, uri: Uri): RotateBitmapResult {
         try {
             val file = getFileFromUri(context, uri)
             if (file.exists()) {
