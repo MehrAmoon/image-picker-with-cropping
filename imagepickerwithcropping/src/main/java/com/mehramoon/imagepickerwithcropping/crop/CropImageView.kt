@@ -979,7 +979,7 @@ class CropImageView @JvmOverloads constructor(context: Context, attrs: Attribute
             mImageView.clearAnimation()
             val currentTask =
                 if (mBitmapCroppingWorkerTask != null) mBitmapCroppingWorkerTask!!.get() else null
-            currentTask?.bitmapCroppingWorkerTaskJob?.cancel()
+            currentTask?.cancel(true)
             reqWidth = if (options != RequestSizeOptions.NONE) reqWidth else 0
             reqHeight = if (options != RequestSizeOptions.NONE) reqHeight else 0
             val orgWidth = mBitmap!!.width * mLoadedSampleSize
@@ -1024,7 +1024,7 @@ class CropImageView @JvmOverloads constructor(context: Context, attrs: Attribute
                         )
                     )
                 }
-            mBitmapCroppingWorkerTask!!.get()?.bitmapCroppingWorkerTaskRun()
+            mBitmapCroppingWorkerTask!!.get()
             setProgressBarVisibility()
         }
     }
