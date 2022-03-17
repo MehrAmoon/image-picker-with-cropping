@@ -4,39 +4,110 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat
 import android.net.Uri
-import com.mehramoon.imagepickerwithcropping.Utils.executeAsyncTask
-import kotlinx.coroutines.*
-import kotlinx.coroutines.NonCancellable.isCancelled
+import android.os.AsyncTask
 import java.lang.ref.WeakReference
 
 
-class BitmapCroppingWorkerTask {
-
-    var bitmapCroppingWorkerTaskJob: Job? = null
+/**
+ * Task to crop bitmap asynchronously from the UI thread.
+ */
+class BitmapCroppingWorkerTask :
+    AsyncTask<Void?, Void?, BitmapCroppingWorkerTask.Result?> {
+    //region: Fields and Consts
+    /**
+     * Use a WeakReference to ensure the ImageView can be garbage collected
+     */
     private val mCropImageViewReference: WeakReference<CropImageView>
+
+    /**
+     * the bitmap to crop
+     */
     private val mBitmap: Bitmap?
+    /**
+     * The Android URI that this task is currently loading.
+     */
+    /**
+     * The Android URI of the image to load
+     */
     val uri: Uri?
+
+    /**
+     * The context of the crop image view widget used for loading of bitmap by Android URI
+     */
     private val mContext: Context
+
+    /**
+     * Required cropping 4 points (x0,y0,x1,y1,x2,y2,x3,y3)
+     */
     private val mCropPoints: FloatArray
+
+    /**
+     * Degrees the image was rotated after loading
+     */
     private val mDegreesRotated: Int
+
+    /**
+     * the original width of the image to be cropped (for image loaded from URI)
+     */
     private val mOrgWidth: Int
+
+    /**
+     * the original height of the image to be cropped (for image loaded from URI)
+     */
     private val mOrgHeight: Int
+
+    /**
+     * is there is fixed aspect ratio for the crop rectangle
+     */
     private val mFixAspectRatio: Boolean
+
+    /**
+     * the X aspect ration of the crop rectangle
+     */
     private val mAspectRatioX: Int
+
+    /**
+     * the Y aspect ration of the crop rectangle
+     */
     private val mAspectRatioY: Int
+
+    /**
+     * required width of the cropping image
+     */
     private val mReqWidth: Int
+
+    /**
+     * required height of the cropping image
+     */
     private val mReqHeight: Int
+
+    /**
+     * The option to handle requested width/height
+     */
     private val mReqSizeOptions: CropImageView.RequestSizeOptions
+
+    /**
+     * the Android Uri to save the cropped image to
+     */
     private val mSaveUri: Uri?
+
+    /**
+     * the compression format to use when writing the image
+     */
     private val mSaveCompressFormat: CompressFormat
+
+    /**
+     * the quality (if applicable) to use when writing the image (0 - 100)
+     */
     private val mSaveCompressQuality: Int
 
-
+    //endregion
     constructor(
         cropImageView: CropImageView, bitmap: Bitmap?, cropPoints: FloatArray,
         degreesRotated: Int, fixAspectRatio: Boolean, aspectRatioX: Int, aspectRatioY: Int,
         reqWidth: Int, reqHeight: Int, options: CropImageView.RequestSizeOptions,
-        saveUri: Uri?, saveCompressFormat: CompressFormat, saveCompressQuality: Int) {
+        saveUri: Uri?, saveCompressFormat: CompressFormat, saveCompressQuality: Int
+    ) {
         mCropImageViewReference = WeakReference(cropImageView)
         mContext = cropImageView.context
         mBitmap = bitmap
@@ -61,7 +132,8 @@ class BitmapCroppingWorkerTask {
         degreesRotated: Int, orgWidth: Int, orgHeight: Int,
         fixAspectRatio: Boolean, aspectRatioX: Int, aspectRatioY: Int,
         reqWidth: Int, reqHeight: Int, options: CropImageView.RequestSizeOptions,
-        saveUri: Uri?, saveCompressFormat: CompressFormat, saveCompressQuality: Int) {
+        saveUri: Uri?, saveCompressFormat: CompressFormat, saveCompressQuality: Int
+    ) {
         mCropImageViewReference = WeakReference(cropImageView)
         mContext = cropImageView.context
         this.uri = uri
@@ -81,95 +153,112 @@ class BitmapCroppingWorkerTask {
         mBitmap = null
     }
 
-
-    fun bitmapCroppingWorkerTaskRun() {
-        GlobalScope.launch { bitmapCroppingWorkerTaskFun() }
-    }
-
-    suspend fun bitmapCroppingWorkerTaskFun() {
-        bitmapCroppingWorkerTaskJob = coroutineScope {
-            executeAsyncTask(onPreExecute = {
-                // ... runs in Main Thread
-
-
-            }, doInBackground = {
-                // ... runs in Worker(Background) Thread
-                "Result" // send data to "onPostExecute"
-
-                if (!isCancelled) {
-                    val bitmapSampled: BitmapUtils.BitmapSampled = if (uri != null) {
-                        BitmapUtils.cropBitmap(
+    /**
+     * Crop image in background.
+     *
+     * @param params ignored
+     * @return the decoded bitmap data
+     */
+    override fun doInBackground(vararg params: Void?): Result? {
+        return try {
+            if (!isCancelled) {
+                val bitmapSampled: BitmapUtils.BitmapSampled = if (uri != null) {
+                    BitmapUtils.cropBitmap(
+                        mContext,
+                        uri, mCropPoints, mDegreesRotated, mOrgWidth, mOrgHeight,
+                        mFixAspectRatio, mAspectRatioX, mAspectRatioY, mReqWidth, mReqHeight
+                    )
+                } else if (mBitmap != null) {
+                    BitmapUtils.cropBitmapObjectHandleOOM(
+                        mBitmap,
+                        mCropPoints,
+                        mDegreesRotated,
+                        mFixAspectRatio,
+                        mAspectRatioX,
+                        mAspectRatioY
+                    )
+                } else {
+                    return Result(null as Bitmap?, 1)
+                }
+                val bitmap: Bitmap? = bitmapSampled.bitmap?.let {
+                    BitmapUtils.resizeBitmap(
+                        it,
+                        mReqWidth,
+                        mReqHeight,
+                        mReqSizeOptions
+                    )
+                }
+                return if (mSaveUri == null) {
+                    Result(bitmap, bitmapSampled.sampleSize)
+                } else {
+                    if (bitmap != null) {
+                        BitmapUtils.writeBitmapToUri(
                             mContext,
-                            uri, mCropPoints, mDegreesRotated, mOrgWidth, mOrgHeight,
-                            mFixAspectRatio, mAspectRatioX, mAspectRatioY, mReqWidth, mReqHeight
-                        )
-                    } else if (mBitmap != null) {
-                        BitmapUtils.cropBitmapObjectHandleOOM(
-                            mBitmap,
-                            mCropPoints,
-                            mDegreesRotated,
-                            mFixAspectRatio,
-                            mAspectRatioX,
-                            mAspectRatioY
-                        )
-                    } else {
-                        return@executeAsyncTask Result(null as Bitmap?, 1)
-                    }
-                    val bitmap: Bitmap? = bitmapSampled.bitmap?.let {
-                        BitmapUtils.resizeBitmap(
-                            it,
-                            mReqWidth,
-                            mReqHeight,
-                            mReqSizeOptions
+                            bitmap,
+                            mSaveUri,
+                            mSaveCompressFormat,
+                            mSaveCompressQuality
                         )
                     }
-                    return@executeAsyncTask if (mSaveUri == null) {
-                        Result(bitmap, bitmapSampled.sampleSize)
-                    } else {
-                        if (bitmap != null) {
-                            BitmapUtils.writeBitmapToUri(
-                                mContext,
-                                bitmap,
-                                mSaveUri,
-                                mSaveCompressFormat,
-                                mSaveCompressQuality
-                            )
-                        }
-                        bitmap?.recycle()
-                        Result(mSaveUri, bitmapSampled.sampleSize)
-                    }
+                    bitmap?.recycle()
+                    Result(mSaveUri, bitmapSampled.sampleSize)
                 }
-                null
-
-            }, onPostExecute = {
-                // runs in Main Thread
-                // ... here "it" is the data returned from "doInBackground"
-
-
-                if (it != null) {
-                    var completeCalled = false
-                    if (!isCancelled) {
-                        val cropImageView = mCropImageViewReference.get()
-                        if (cropImageView != null) {
-                            completeCalled = true
-                            cropImageView.onImageCroppingAsyncComplete(it)
-                        }
-                    }
-                    if (!completeCalled && it.bitmap != null) {
-                        it.bitmap.recycle()
-                    }
-                }
-
-            })
+            }
+            null
+        } catch (e: Exception) {
+            Result(e, mSaveUri != null)
         }
     }
 
-
+    /**
+     * Once complete, see if ImageView is still around and set bitmap.
+     *
+     * @param result the result of bitmap cropping
+     */
+    override fun onPostExecute(result: Result?) {
+        if (result != null) {
+            var completeCalled = false
+            if (!isCancelled) {
+                val cropImageView = mCropImageViewReference.get()
+                if (cropImageView != null) {
+                    completeCalled = true
+                    cropImageView.onImageCroppingAsyncComplete(result)
+                }
+            }
+            if (!completeCalled && result.bitmap != null) {
+                // fast release of unused bitmap
+                result.bitmap.recycle()
+            }
+        }
+    }
+    //region: Inner class: Result
+    /**
+     * The result of BitmapCroppingWorkerTask async loading.
+     */
     class Result {
+        /**
+         * The cropped bitmap
+         */
         val bitmap: Bitmap?
+
+        /**
+         * The saved cropped bitmap uri
+         */
         val uri: Uri?
+
+        /**
+         * The error that occurred during async bitmap cropping.
+         */
         val error: Exception?
+
+        /**
+         * is the cropping request was to get a bitmap or to save it to uri
+         */
         val isSave: Boolean
+
+        /**
+         * sample size used creating the crop bitmap to lower its size
+         */
         val sampleSize: Int
 
         constructor(bitmap: Bitmap?, sampleSize: Int) {
@@ -195,6 +284,5 @@ class BitmapCroppingWorkerTask {
             this.isSave = isSave
             sampleSize = 1
         }
-    }
-
+    } //endregion
 }
