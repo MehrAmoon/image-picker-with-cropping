@@ -68,9 +68,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (data != null) {
             imagePicker.onActivityResult(this, requestCode, resultCode, data)
-        }
         if (requestCode == REQUEST_CODE) {
             if (resultCode == RESULT_CODE)
                 finish()

@@ -65,7 +65,7 @@ object CropImage {
     }
 
 
-    fun getPickImageChooserIntent(@NonNull context: Context): Intent {
+    private fun getPickImageChooserIntent(@NonNull context: Context): Intent {
         return getPickImageChooserIntent(
             context, context.getString(
                 R.string.pick_image_intent_chooser_title
@@ -111,16 +111,19 @@ object CropImage {
         if (outputFileUri == null) {
             outputFileUri = getCaptureImageOutputUri(context)
         }
-        intent.putExtra(MediaStore.EXTRA_OUTPUT,
-            outputFileUri?.let { Utils.getIntentUri(context, it) })
+        outputFileUri?.let {
+            intent.putExtra(MediaStore.EXTRA_OUTPUT,  Utils.getIntentUri(context, it) )
+        }
+
         return intent
     }
 
 
-    fun getCameraIntents(
+    private fun getCameraIntents(
         @NonNull context: Context,
         @NonNull packageManager: PackageManager
     ): List<Intent> {
+
         val allIntents: MutableList<Intent> = ArrayList()
         val outputFileUri = getCaptureImageOutputUri(context)
         val captureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
@@ -130,7 +133,7 @@ object CropImage {
             intent.component = ComponentName(res.activityInfo.packageName, res.activityInfo.name)
             intent.setPackage(res.activityInfo.packageName)
             if (outputFileUri != null) {
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, Utils.getIntentUri(context, outputFileUri))
+               intent.putExtra(MediaStore.EXTRA_OUTPUT, Utils.getIntentUri(context, outputFileUri))
             }
             allIntents.add(intent)
         }
@@ -200,7 +203,7 @@ object CropImage {
     }
 
 
-    fun getCaptureImageOutputUri(@NonNull context: Context): Uri? {
+    private fun getCaptureImageOutputUri(@NonNull context: Context): Uri? {
         var outputFileUri: Uri? = null
         val getImage = context.externalCacheDir
         if (getImage != null) {
@@ -212,11 +215,13 @@ object CropImage {
 
     fun getPickImageResultUri(@NonNull context: Context, @Nullable data: Intent?): Uri? {
         var isCamera = true
-        if (data != null && data.data != null) {
+        if (data != null && data.data != null ) {
             val action = data.action
             isCamera = action != null && action == MediaStore.ACTION_IMAGE_CAPTURE
         }
-        return if (isCamera || data!!.data == null) getCaptureImageOutputUri(context) else data.data
+        return if (isCamera || data!!.data == null) getCaptureImageOutputUri(context)
+        else
+            data.data
     }
 
 
@@ -231,7 +236,7 @@ object CropImage {
     }
 
 
-    fun isUriRequiresPermissions(@NonNull context: Context, @NonNull uri: Uri?): Boolean {
+    private fun isUriRequiresPermissions(@NonNull context: Context, @NonNull uri: Uri?): Boolean {
         return try {
             val resolver = context.contentResolver
             val stream = resolver.openInputStream(uri!!)
@@ -256,7 +261,7 @@ object CropImage {
 
         private val mOptions: CropImageOptions = CropImageOptions()
 
-        fun getIntent(@NonNull context: Context?): Intent {
+        private fun getIntent(@NonNull context: Context?): Intent {
             return getIntent(context, CropImageActivity::class.java)
         }
 
@@ -567,7 +572,7 @@ object CropImage {
         /**
          * *Default: 0, 0 - not set, will not resize*
          */
-        fun setRequestedSize(
+        private fun setRequestedSize(
             reqWidth: Int,
             reqHeight: Int,
             options: CropImageView.RequestSizeOptions?

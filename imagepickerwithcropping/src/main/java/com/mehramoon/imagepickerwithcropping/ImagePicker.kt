@@ -120,7 +120,7 @@ open class ImagePicker {
         } else title
     }
 
-    protected fun getGalleryIntent(context: Context, includeDocuments: Boolean): Intent {
+    private fun getGalleryIntent(context: Context, includeDocuments: Boolean): Intent {
         val packageManager = context.packageManager
         var galleryIntents = CropImage.getGalleryIntents(packageManager, Intent.ACTION_GET_CONTENT, includeDocuments)
         if (galleryIntents.isEmpty()) {
@@ -140,7 +140,7 @@ open class ImagePicker {
         return chooserIntent
     }
 
-    fun onActivityResult(activity: Activity?, requestCode: Int, resultCode: Int, data: Intent) {
+    fun onActivityResult(activity: Activity?, requestCode: Int, resultCode: Int, data: Intent?) {
         onActivityResultInner(activity, null, requestCode, resultCode, data)
     }
 
@@ -153,7 +153,7 @@ open class ImagePicker {
         fragment: Fragment?,
         requestCode: Int,
         resultCode: Int,
-        data: Intent
+        data: Intent?
     ) {
         if (resultCode == Activity.RESULT_OK) {
             val context: Context = (activity ?: fragment?.activity) as Context

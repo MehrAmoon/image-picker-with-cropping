@@ -21,6 +21,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:noHistory="false"
             android:label="@string/app_name"
             tools:ignore="Instantiatable">
             <intent-filter>
@@ -31,6 +32,7 @@
 
         <activity
             android:name="com.mehramoon.imagepickerwithcropping.crop.CropImageActivity"
+            android:noHistory="false"
             android:theme="@style/Base.Theme.AppCompat"/>
     </application>
 

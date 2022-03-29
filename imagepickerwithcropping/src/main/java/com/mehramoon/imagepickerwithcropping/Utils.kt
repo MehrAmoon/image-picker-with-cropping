@@ -24,7 +24,7 @@ object Utils {
         }
     }
 
-    fun getContentUri(context: Context, fileUri: Uri): Uri {
+    private fun getContentUri(context: Context, fileUri: Uri): Uri {
         return FileProvider.getUriForFile(
             context,
             context.applicationContext.packageName + ".imagePicker.provider",

@@ -14,7 +14,7 @@ import android.util.TypedValue
  * All the possible options that can be set to customize crop image.<br></br>
  * Initialized with default values.
  */
-class CropImageOptions : Parcelable {
+open class CropImageOptions : Parcelable {
     /**
      * The shape of the cropping window.
      */

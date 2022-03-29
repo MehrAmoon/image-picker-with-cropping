@@ -26,7 +26,7 @@ import java.io.IOException
  * Built-in activity for image cropping.<br></br>
  * Use [CropImage.activity] to create a builder to start this activity.
  */
-class CropImageActivity : AppCompatActivity(), CropImageView.OnSetImageUriCompleteListener,
+open class CropImageActivity : AppCompatActivity(), CropImageView.OnSetImageUriCompleteListener,
     CropImageView.OnCropImageCompleteListener {
     /**
      * The crop image view library widget used in the activity
@@ -259,8 +259,8 @@ class CropImageActivity : AppCompatActivity(), CropImageView.OnSetImageUriComple
      * Get Android uri to save the cropped image into.<br></br>
      * Use the given in options or create a temp file.
      */
-    protected val outputUri: Uri?
-        protected get() {
+    private val outputUri: Uri?
+        get() {
             var outputUri = mOptions!!.outputUri
             if (outputUri == Uri.EMPTY) {
                 outputUri = try {
@@ -282,7 +282,7 @@ class CropImageActivity : AppCompatActivity(), CropImageView.OnSetImageUriComple
     /**
      * Result with cropped image data or error if failed.
      */
-    protected fun setResult(uri: Uri?, error: Exception?, sampleSize: Int) {
+    private fun setResult(uri: Uri?, error: Exception?, sampleSize: Int) {
         val resultCode =
             if (error == null) RESULT_OK else CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE
         setResult(resultCode, getResultIntent(uri, error, sampleSize))
@@ -292,7 +292,7 @@ class CropImageActivity : AppCompatActivity(), CropImageView.OnSetImageUriComple
     /**
      * Cancel of cropping activity.
      */
-    protected fun setResultCancel() {
+    private fun setResultCancel() {
         setResult(RESULT_CANCELED)
         finish()
     }
