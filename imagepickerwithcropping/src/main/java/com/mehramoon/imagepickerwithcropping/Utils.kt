@@ -15,6 +15,7 @@ import java.io.File
 
 object Utils {
 
+    private const val TAG = "getRealPathFromURI"
     fun getIntentUri(context: Context, uri: Uri): Uri {
         //support android N+
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -37,17 +38,20 @@ object Utils {
         var imageId: Long
         var realPath = ""
         val proj = arrayOf(MediaStore.Images.Media._ID)
-        cursor = context.contentResolver.query(contentUri!!, proj, null, null, null)
-        if (cursor != null) {
-            val columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-            while (cursor.moveToNext()) {
-                imageId = cursor.getLong(columnIndex)
-                val uriImage = Uri.withAppendedPath(contentUri, "" + imageId)
-                realPath = uriImage.toString()
+        contentUri?.let { ContentUri ->
+            cursor = context.contentResolver.query(ContentUri, proj, null, null, null)
+            if (cursor != null) {
+                val columnIndex = cursor?.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+                while (cursor?.moveToNext() == true) {
+                    imageId = columnIndex?.let { it1 -> cursor?.getLong(it1) }!!
+                    val uriImage = Uri.withAppendedPath(ContentUri, "" + imageId)
+                    realPath = uriImage.toString()
+                }
             }
+            cursor?.close()
+            return realPath
         }
-        cursor?.close()
-        return realPath
+        return ""
     }
 
     fun <R> CoroutineScope.executeAsyncTask(

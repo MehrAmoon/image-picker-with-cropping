@@ -10,6 +10,7 @@ import android.graphics.*
 import android.graphics.Bitmap.CompressFormat
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.os.Parcel
 import android.os.Parcelable
 import android.provider.MediaStore
@@ -30,6 +31,7 @@ object CropImage {
     const val CAMERA_CAPTURE_PERMISSIONS_REQUEST_CODE = 2011
     const val CROP_IMAGE_ACTIVITY_REQUEST_CODE = 203
     const val CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE = 204
+    private const val TAG = "getRealPathFromURI"
 
     fun toOvalBitmap(@NonNull bitmap: Bitmap): Bitmap {
         val width = bitmap.width
@@ -133,7 +135,7 @@ object CropImage {
             intent.component = ComponentName(res.activityInfo.packageName, res.activityInfo.name)
             intent.setPackage(res.activityInfo.packageName)
             if (outputFileUri != null) {
-               intent.putExtra(MediaStore.EXTRA_OUTPUT, Utils.getIntentUri(context, outputFileUri))
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, Utils.getIntentUri(context, outputFileUri))
             }
             allIntents.add(intent)
         }
@@ -205,7 +207,13 @@ object CropImage {
 
     private fun getCaptureImageOutputUri(@NonNull context: Context): Uri? {
         var outputFileUri: Uri? = null
-        val getImage = context.externalCacheDir
+        var getImage: File? = null
+        val state = Environment.getExternalStorageState()
+        getImage = if (Environment.MEDIA_MOUNTED == state && context.externalCacheDir?.exists() == true) {
+            context.externalCacheDir
+        }else {
+            context.cacheDir
+        }
         if (getImage != null) {
             outputFileUri = Uri.fromFile(File(getImage.path, "pickImageResult.jpeg"))
         }

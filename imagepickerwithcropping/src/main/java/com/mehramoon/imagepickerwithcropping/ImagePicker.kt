@@ -23,7 +23,6 @@ open class ImagePicker {
     private var pickImageUri: Uri? = null
     private var cropImageUri: Uri? = null
 
-
     fun setCropImage(cropImage: Boolean) {
         isCropImage = cropImage
     }
@@ -276,9 +275,11 @@ open class ImagePicker {
 
     private fun handleUri(context: Context, imageUri: Uri?): Uri? {
         if ("content" == imageUri!!.scheme) {
-            val realPathFromUri = Utils.getRealPathFromURI(context, imageUri)
-            if (!TextUtils.isEmpty(realPathFromUri)) {
-                return Uri.fromFile(File(realPathFromUri))
+            imageUri.let { uri ->
+                val realPathFromUri = Utils.getRealPathFromURI(context, uri)
+                if (!TextUtils.isEmpty(realPathFromUri)) {
+                    return Uri.fromFile(File(realPathFromUri))
+                }
             }
         }
         return imageUri
