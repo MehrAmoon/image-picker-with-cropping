@@ -38,18 +38,20 @@ object Utils {
         var imageId: Long
         var realPath = ""
         val proj = arrayOf(MediaStore.Images.Media._ID)
-        contentUri?.let { ContentUri ->
-            cursor = context.contentResolver.query(ContentUri, proj, null, null, null)
-            if (cursor != null) {
-                val columnIndex = cursor?.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-                while (cursor?.moveToNext() == true) {
-                    imageId = columnIndex?.let { it1 -> cursor?.getLong(it1) }!!
-                    val uriImage = Uri.withAppendedPath(ContentUri, "" + imageId)
-                    realPath = uriImage.toString()
+        proj.let { Proj ->
+            contentUri?.let { ContentUri ->
+                cursor = context.contentResolver.query(ContentUri, Proj, null, null, null)
+                if (cursor != null) {
+                    val columnIndex = cursor?.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+                    while (cursor?.moveToNext() == true) {
+                        imageId = columnIndex?.let { it1 -> cursor?.getLong(it1) }!!
+                        val uriImage = Uri.withAppendedPath(ContentUri, "" + imageId)
+                        realPath = uriImage.toString()
+                    }
                 }
+                cursor?.close()
+                return realPath
             }
-            cursor?.close()
-            return realPath
         }
         return ""
     }

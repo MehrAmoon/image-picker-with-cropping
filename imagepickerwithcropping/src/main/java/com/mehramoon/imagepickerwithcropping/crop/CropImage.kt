@@ -116,10 +116,8 @@ object CropImage {
         outputFileUri?.let {
             intent.putExtra(MediaStore.EXTRA_OUTPUT,  Utils.getIntentUri(context, it) )
         }
-
         return intent
     }
-
 
     private fun getCameraIntents(
         @NonNull context: Context,

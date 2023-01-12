@@ -274,8 +274,8 @@ open class ImagePicker {
     }
 
     private fun handleUri(context: Context, imageUri: Uri?): Uri? {
-        if ("content" == imageUri!!.scheme) {
-            imageUri.let { uri ->
+        imageUri.let { uri ->
+        if ("content" == uri?.scheme) {
                 val realPathFromUri = Utils.getRealPathFromURI(context, uri)
                 if (!TextUtils.isEmpty(realPathFromUri)) {
                     return Uri.fromFile(File(realPathFromUri))
