@@ -121,9 +121,11 @@ open class ImagePicker {
 
     private fun getGalleryIntent(context: Context, includeDocuments: Boolean): Intent {
         val packageManager = context.packageManager
-        var galleryIntents = CropImage.getGalleryIntents(packageManager, Intent.ACTION_GET_CONTENT, includeDocuments)
+        var galleryIntents =
+            CropImage.getGalleryIntents(packageManager, Intent.ACTION_GET_CONTENT, includeDocuments)
         if (galleryIntents.isEmpty()) {
-            galleryIntents = CropImage.getGalleryIntents(packageManager, Intent.ACTION_PICK, includeDocuments)
+            galleryIntents =
+                CropImage.getGalleryIntents(packageManager, Intent.ACTION_PICK, includeDocuments)
         }
         val target: Intent?
         if (galleryIntents.isEmpty()) {
@@ -213,23 +215,25 @@ open class ImagePicker {
                     }
                 }
             } else {
-                if (callback != null) {
-                    callback!!.onPermissionDenied(requestCode, permissions, grantResults)
-                }
+                callback?.onPermissionDenied(requestCode, permissions, grantResults)
             }
         }
         if (requestCode == CropImage.PICK_IMAGE_PERMISSIONS_REQUEST_CODE) {
-            if (cropImageUri != null && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                if (activity != null) {
-                    handlePickImage(activity, cropImageUri!!)
-                } else {
-                    if (fragment != null) {
-                        handlePickImage(fragment, cropImageUri!!)
+            cropImageUri?.let {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    if (activity != null) {
+                        handlePickImage(activity, it)
+                    } else {
+                        if (fragment != null) {
+                            handlePickImage(fragment, it)
+                        } else {
+
+                        }
                     }
-                }
-            } else {
-                if (callback != null) {
-                    callback!!.onPermissionDenied(requestCode, permissions, grantResults)
+                } else {
+
+                    callback?.onPermissionDenied(requestCode, permissions, grantResults)
+
                 }
             }
         }
@@ -238,9 +242,7 @@ open class ImagePicker {
     private fun handleCropResult(context: Context, result: CropImageView.CropResult) {
         if (result.error == null) {
             cropImageUri = result.uri
-            if (callback != null) {
-                callback!!.onCropImage(handleUri(context, cropImageUri))
-            }
+            callback?.onCropImage(handleUri(context, cropImageUri))
         } else {
             Log.e(TAG, "handleCropResult error", result.error)
         }
@@ -255,27 +257,29 @@ open class ImagePicker {
     }
 
     private fun handlePickImageInner(activity: Activity?, fragment: Fragment?, imageUri: Uri) {
-        if (callback != null) {
+        callback?.let {
             val context: Context = (activity ?: fragment?.context) as Context
-            callback!!.onPickImage(handleUri(context, imageUri))
-        }
-        if (!isCropImage) {
-            return
-        }
-        val builder = CropImage.activity(imageUri)
-        callback!!.cropConfig(builder)
-        if (activity != null) {
-            builder.start(activity)
-        } else {
-            if (fragment != null) {
-                builder.start(fragment.activity, fragment)
+            it.onPickImage(handleUri(context, imageUri))
+
+            if (!isCropImage) {
+                return
+            }
+            val builder = CropImage.activity(imageUri)
+
+            it.cropConfig(builder)
+            if (activity != null) {
+                builder.start(activity)
+            } else {
+                if (fragment != null) {
+                    builder.start(fragment.activity, fragment)
+                }
             }
         }
     }
 
     private fun handleUri(context: Context, imageUri: Uri?): Uri? {
         imageUri.let { uri ->
-        if ("content" == uri?.scheme) {
+            if ("content" == uri?.scheme) {
                 val realPathFromUri = Utils.getRealPathFromURI(context, uri)
                 if (!TextUtils.isEmpty(realPathFromUri)) {
                     return Uri.fromFile(File(realPathFromUri))

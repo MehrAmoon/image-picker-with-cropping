@@ -118,7 +118,6 @@ object CropImage {
         }
         return intent
     }
-
     private fun getCameraIntents(
         @NonNull context: Context,
         @NonNull packageManager: PackageManager
