@@ -22,6 +22,7 @@ open class ImagePicker {
     private var title: CharSequence? = null
     private var pickImageUri: Uri? = null
     private var cropImageUri: Uri? = null
+    private var grantResults : IntArray? = null
 
     fun setCropImage(cropImage: Boolean) {
         isCropImage = cropImage
@@ -113,7 +114,7 @@ open class ImagePicker {
         )
     }
 
-    protected fun getTitle(context: Context): CharSequence? {
+    private fun getTitle(context: Context): CharSequence? {
         return if (TextUtils.isEmpty(title)) {
             context.getString(R.string.pick_image_intent_chooser_title)
         } else title
@@ -138,6 +139,7 @@ open class ImagePicker {
         val chooserIntent = Intent.createChooser(target, getTitle(context))
 
         chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, galleryIntents.toTypedArray())
+        Log.e(TAG, "handlePickImage")
         return chooserIntent
     }
 
@@ -174,7 +176,7 @@ open class ImagePicker {
                     }
                 } else {
                     if (activity != null) {
-                        pickImageUri?.let { handlePickImage(activity, it) }
+                        pickImageUri?.let { handlePickImage(activity, it ) }
                     } else {
                         if (fragment != null) {
                             pickImageUri?.let { handlePickImage(fragment, it) }
@@ -217,6 +219,7 @@ open class ImagePicker {
             } else {
                 callback?.onPermissionDenied(requestCode, permissions, grantResults)
             }
+            this.grantResults = grantResults
         }
         if (requestCode == CropImage.PICK_IMAGE_PERMISSIONS_REQUEST_CODE) {
             cropImageUri?.let {
@@ -236,6 +239,7 @@ open class ImagePicker {
 
                 }
             }
+            this.grantResults = grantResults
         }
     }
 
@@ -249,14 +253,25 @@ open class ImagePicker {
     }
 
     private fun handlePickImage(activity: Activity, imageUri: Uri) {
-        handlePickImageInner(activity, null, imageUri)
+        if (grantResults == null) {
+            return
+        }
+        handlePickImageInner(activity, null, imageUri, grantResults)
     }
 
     private fun handlePickImage(fragment: Fragment, imageUri: Uri) {
-        handlePickImageInner(null, fragment, imageUri)
+        if (grantResults == null) {
+            return
+        }
+        handlePickImageInner(null, fragment, imageUri, grantResults)
     }
 
-    private fun handlePickImageInner(activity: Activity?, fragment: Fragment?, imageUri: Uri) {
+    private fun handlePickImageInner(
+        activity: Activity?,
+        fragment: Fragment?,
+        imageUri: Uri,
+        grantResults: IntArray?
+    ) {
         callback?.let {
             val context: Context = (activity ?: fragment?.context) as Context
             it.onPickImage(handleUri(context, imageUri))
@@ -274,6 +289,9 @@ open class ImagePicker {
                     builder.start(fragment.activity, fragment)
                 }
             }
+        }
+        if (grantResults == null) {
+            return
         }
     }
 
