@@ -154,6 +154,7 @@ object CropImage {
         val listGallery = packageManager.queryIntentActivities(galleryIntent, 0)
         for (res in listGallery) {
             val intent = Intent(galleryIntent)
+            intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
             intent.component = ComponentName(res.activityInfo.packageName, res.activityInfo.name)
             intent.setPackage(res.activityInfo.packageName)
             intents.add(intent)
@@ -161,11 +162,10 @@ object CropImage {
 
         // remove documents intent
         if (!includeDocuments) {
-            for (intent in intents) {
-                if (intent.component!!.className == "com.android.documentsui.DocumentsActivity") {
-                    intents.remove(intent)
-                    break
-                }
+            intents.removeIf{ it.component?.className == "com.android.documentsui.DocumentsActivity"
+                    ||
+                    //google drive
+                    it.component?.className?.contains("doc") == true
             }
         }
         return intents
