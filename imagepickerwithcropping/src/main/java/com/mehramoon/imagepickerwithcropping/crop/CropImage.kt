@@ -1,19 +1,29 @@
 package com.mehramoon.imagepickerwithcropping.crop
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.*
+import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
+import android.graphics.Rect
+import android.graphics.RectF
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.os.Parcel
 import android.os.Parcelable
 import android.provider.MediaStore
+import android.provider.MediaStore.Images.Media
+import android.util.Log
+import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.fragment.app.Fragment
 import com.mehramoon.imagepickerwithcropping.R
 import com.mehramoon.imagepickerwithcropping.Utils
@@ -87,22 +97,17 @@ object CropImage {
         if (!isExplicitCameraPermissionRequired(context)) {
             allIntents.addAll(getCameraIntents(context, packageManager))
         }
-        var galleryIntents =
+
+        val galleryIntents =
             getGalleryIntents(packageManager, Intent.ACTION_GET_CONTENT, includeDocuments)
-        if (galleryIntents.isEmpty()) {
-            galleryIntents = getGalleryIntents(packageManager, Intent.ACTION_PICK, includeDocuments)
-        }
+
         allIntents.addAll(galleryIntents)
-        val target: Intent
-        if (allIntents.isEmpty()) {
-            target = Intent()
-        } else {
-            target = allIntents[allIntents.size - 1]
-            allIntents.removeAt(allIntents.size - 1)
-        }
 
-        val chooserIntent = Intent.createChooser(target, title)
+        val pickIntent = Intent(Intent.ACTION_PICK)
+        pickIntent.setType("image/*")
 
+
+        val chooserIntent = Intent.createChooser(pickIntent, title)
         chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, allIntents.toTypedArray())
         return chooserIntent
     }
@@ -146,20 +151,23 @@ object CropImage {
         includeDocuments: Boolean
     ): List<Intent> {
         val intents: MutableList<Intent> = ArrayList()
-        val galleryIntent = if (action === Intent.ACTION_GET_CONTENT) Intent(action) else Intent(
-            action,
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        val galleryIntent = Intent(
+            action
         )
         galleryIntent.type = "image/*"
         val listGallery = packageManager.queryIntentActivities(galleryIntent, 0)
         for (res in listGallery) {
             val intent = Intent(galleryIntent)
-            intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+            intent.putExtra(Intent.EXTRA_LOCAL_ONLY, false);
             intent.component = ComponentName(res.activityInfo.packageName, res.activityInfo.name)
             intent.setPackage(res.activityInfo.packageName)
-            intents.add(intent)
-        }
 
+        }
+        val externalContentIntent =  Intent(action)
+        externalContentIntent.setDataAndType(Media.EXTERNAL_CONTENT_URI, "image/*")
+
+        if(!intents.contains(externalContentIntent))
+            intents.add(externalContentIntent)
         // remove documents intent
         if (!includeDocuments) {
             intents.removeIf{ it.component?.className == "com.android.documentsui.DocumentsActivity"
